@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VZatsu</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="VZatsu">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/vzatsu/sw.js');</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f10;--surface:#18181b;--border:#27272a;
+  --text:#e4e4e7;--muted:#52525b;--hint:#71717a;
+  --accent:#c084fc;--accent-bg:rgba(192,132,252,0.08);
+  --red:#f87171;--font:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.wrap{width:100%;max-width:460px}
+.logo{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.2em;
+  text-transform:uppercase;margin-bottom:2.5rem;display:flex;align-items:center;gap:8px}
+.logo::before{content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--accent);display:inline-block;animation:blink 2s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.screen{display:none}.screen.active{display:block}
+h2{font-size:11px;font-weight:400;color:var(--hint);letter-spacing:.08em;
+  margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+h2::before{content:'// '}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:18px;margin-bottom:12px}
+.instr{font-size:11px;line-height:1.9;color:var(--hint)}
+.instr ol{padding-left:14px}
+.instr code{background:var(--bg);color:var(--accent);padding:1px 6px;
+  border-radius:4px;font-size:10.5px}
+.instr a{color:var(--accent);text-decoration:none}
+input[type=text]{width:100%;background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-family:var(--font);font-size:12px;padding:10px 12px;
+  border-radius:7px;outline:none;margin-bottom:8px}
+input[type=text]:focus{border-color:var(--accent)}
+input[type=text]::placeholder{color:var(--muted)}
+.btn{font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;
+  border-radius:7px;transition:all .15s;letter-spacing:.08em;padding:10px 18px}
+.btn-main{background:var(--accent);color:#000;border:none;width:100%}
+.btn-main:hover{opacity:.9}
+.btn-ghost{background:transparent;color:var(--hint);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--hint)}
+.err{color:var(--red);font-size:11px;margin-top:6px}
+.status{font-size:11px;color:var(--hint);margin-top:10px}
+.status::before{content:'> ';color:var(--accent)}
+.link-btn{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;
+  background:none;border:none;font-family:var(--font);padding:0;margin-top:12px;display:block}
+.link-btn:hover{color:var(--text)}
+.shuffle-area{text-align:center;padding:2rem 0 1.5rem}
+.count{font-size:11px;color:var(--hint);margin-bottom:1.5rem;line-height:1.8}
+.count span{color:var(--accent);font-weight:700}
+.btn-shuffle{width:168px;height:168px;border-radius:50%;background:var(--accent-bg);
+  border:2px solid var(--accent);color:var(--accent);font-family:var(--font);
+  font-size:12px;font-weight:700;letter-spacing:.1em;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.btn-shuffle:hover{background:rgba(192,132,252,.15);transform:scale(1.04)}
+.btn-shuffle:active{transform:scale(.97)}
+.btn-shuffle:disabled{opacity:.3;pointer-events:none}
+.btn-shuffle.spinning{animation:pulse .5s ease-in-out infinite alternate;pointer-events:none}
+@keyframes pulse{from{opacity:.5;transform:scale(.96)}to{opacity:1;transform:scale(1.04)}}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;font-size:11px;color:var(--text);cursor:pointer;user-select:none}
+.toggle-row .label{color:var(--hint)}
+.sw{width:38px;height:21px;border-radius:11px;background:var(--border);
+  position:relative;transition:background .2s;flex-shrink:0}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:15px;height:15px;
+  border-radius:50%;background:var(--muted);transition:all .2s}
+.sw.on{background:var(--accent-bg);border:1px solid var(--accent)}
+.sw.on::after{left:19px;background:var(--accent)}
+.res-ch{font-size:10px;color:var(--accent);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:8px}
+.res-title{font-size:13px;font-weight:500;line-height:1.6;margin-bottom:12px}
+.res-meta{font-size:10px;color:var(--muted);margin-bottom:16px}
+.res-actions{display:flex;gap:8px}
+.btn-open{flex:1;background:var(--accent);color:#000;border:none;
+  font-size:12px;font-weight:700;padding:10px}
+.divider{height:1px;background:var(--border);margin:1.25rem 0}
+.empty{text-align:center;padding:2rem 0;font-size:12px;color:var(--hint);line-height:2}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">VZatsu</div>
+
+  <!-- SETUP -->
+  <div class="screen active" id="s-setup">
+    <h2>セットアップ</h2>
+    <div class="card">
+      <div class="instr">
+        <b style="color:var(--text)">Holodex API Key</b><br>
+        <a href="https://holodex.net" target="_blank">holodex.net</a> にログイン →
+        Account Settings → API Key を発行
+      </div>
+    </div>
+    <input type="text" id="key-input" placeholder="Holodex API Key" />
+    <div class="card">
+      <div class="instr">
+        <b style="color:var(--text)">YouTube API Key</b>（任意）<br>
+        Google Cloud Console → 認証情報 → APIキーを作成。<br>
+        入れると Holodex 未登録の個人勢も拾えます。
+      </div>
+    </div>
+    <input type="text" id="yt-input" placeholder="YouTube Data API Key（空欄可）" />
+    <button class="btn btn-main" onclick="saveKey()">保存して続ける</button>
+    <div id="setup-err" class="err"></div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="s-loading">
+    <h2>取得中</h2>
+    <div class="status" id="load-status">ライブ配信を検索中...</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="screen" id="s-main">
+    <div class="shuffle-area">
+      <div class="count" id="count"></div>
+      <button class="btn-shuffle" id="btn-shuffle" onclick="doShuffle()">SHUFFLE</button>
+    </div>
+    <div class="toggle-row" onclick="toggleZatsu()">
+      <span class="label">雑談配信のみ</span>
+      <div class="sw on" id="sw-zatsu"></div>
+    </div>
+    <div class="divider"></div>
+    <button class="link-btn" onclick="refresh()">↺ 配信リストを再取得</button>
+    <button class="link-btn" onclick="resetKey()">APIキーを変更</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <h2>今ライブ中</h2>
+    <div class="card">
+      <div class="res-ch" id="res-ch"></div>
+      <div class="res-title" id="res-title"></div>
+      <div class="res-meta" id="res-meta"></div>
+      <div class="res-actions">
+        <button class="btn btn-open" onclick="openVideo()">YouTubeで開く →</button>
+        <button class="btn btn-ghost" onclick="doShuffle()">別の配信</button>
+      </div>
+    </div>
+    <button class="link-btn" onclick="show('s-main')">← 戻る</button>
+  </div>
+</div>
+
+<script>
+const HOLODEX = 'https://holodex.net/api/v2';
+const ZATSU_WORDS = ['雑談','雑枠','朝活','フリートーク','ざつだん','zatsu','ZATSU','Zatsu'];
+const EXCLUDE_WORDS = ['同時視聴'];
+const JP_RE = /[\u3040-\u309F\u30A0-\u30FF]/;
+const YT = 'https://www.googleapis.com/youtube/v3';
+// 概要欄に含まれていれば VTuber とみなす語（判別力の高いものだけ）
+const VT_WORDS = [
+  'VTuber','Vtuber','VTUBER','vtuber','ブイチューバー','ぶいちゅーばー',
+  'バーチャルYouTuber','バーチャルユーチューバー','個人勢','Vsinger','VSinger',
+  'Live2D','live2d','モデリング','モデル制作','キャラデザ','キャラクターデザイン',
+  'イラスト:','イラスト：','イラストレーター:','イラストレーター：',
+  'ママ:','ママ：','パパ:','パパ：','ママ】','パパ】'
+];
+
+let apiKey = null;
+let ytKey = null;
+let allLives = [];
+let zatsuOnly = true;
+let current = null;
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function saveKey(){
+  const v = document.getElementById('key-input').value.trim();
+  if(!v){
+    document.getElementById('setup-err').textContent = 'Holodex APIキーを入力してください';
+    return;
+  }
+  const y = document.getElementById('yt-input').value.trim();
+  localStorage.setItem('vz_key', v);
+  apiKey = v;
+  if(y){ localStorage.setItem('vz_ytkey', y); ytKey = y; }
+  else { localStorage.removeItem('vz_ytkey'); ytKey = null; }
+  loadLives();
+}
+
+function resetKey(){
+  localStorage.removeItem('vz_key');
+  localStorage.removeItem('vz_ytkey');
+  localStorage.removeItem('vz_lives');
+  apiKey = null; ytKey = null; allLives = [];
+  show('s-setup');
+}
+
+function toggleZatsu(){
+  zatsuOnly = !zatsuOnly;
+  localStorage.setItem('vz_zatsu', zatsuOnly ? '1' : '0');
+  document.getElementById('sw-zatsu').classList.toggle('on', zatsuOnly);
+  updateCount();
+}
+
+// 実際に配信が始まっていて、日本語配信のものだけ残す
+function isLiveJa(v){
+  if(v.status !== 'live') return false;
+  // 待機枠の除外：実開始時刻がない、または同接が取れないものを弾く
+  if(!v.start_actual) return false;
+  if(v.live_viewers === undefined || v.live_viewers === null) return false;
+  // 日本語判定：lang が ja、なければタイトルのかな判定にフォールバック
+  if(v.lang) return v.lang === 'ja';
+  return JP_RE.test(v.title || '');
+}
+
+function isZatsu(v){
+  const t = v.title || '';
+  if(EXCLUDE_WORDS.some(w => t.includes(w))) return false;
+  return ZATSU_WORDS.some(w => t.includes(w));
+}
+
+function pool(){
+  return zatsuOnly ? allLives.filter(isZatsu) : allLives;
+}
+
+function getCached(){
+  try{
+    const r = localStorage.getItem('vz_lives');
+    if(!r) return null;
+    const {data, ts} = JSON.parse(r);
+    if(Date.now() - ts > 5*60*1000) return null;
+    return data;
+  }catch{ return null; }
+}
+
+function setStatus(t){
+  document.getElementById('load-status').textContent = t;
+}
+
+async function loadHolodex(){
+  const r = await fetch(`${HOLODEX}/live?status=live&type=stream&limit=100`,
+    { headers: { 'X-APIKEY': apiKey } });
+  if(r.status === 401 || r.status === 403) throw new Error('Holodex APIキーが無効です');
+  if(!r.ok) throw new Error('Holodex 取得失敗 (' + r.status + ')');
+  const d = await r.json();
+  return (Array.isArray(d) ? d : []).filter(isLiveJa).map(v => ({
+    id: v.id,
+    title: v.title,
+    channelId: v.channel?.id,
+    channelName: v.channel?.name || '',
+    org: v.channel?.org || '個人勢',
+    viewers: v.live_viewers ?? null,
+    src: 'holodex'
+  }));
+}
+
+// YouTube から「雑談」ライブを検索し、概要欄で VTuber 判定して残す
+async function loadYouTube(){
+  // search.list: 100 units
+  const su = new URL(`${YT}/search`);
+  su.searchParams.set('part','snippet');
+  su.searchParams.set('type','video');
+  su.searchParams.set('eventType','live');
+  su.searchParams.set('q','雑談');
+  su.searchParams.set('regionCode','JP');
+  su.searchParams.set('relevanceLanguage','ja');
+  su.searchParams.set('maxResults','50');
+  su.searchParams.set('key', ytKey);
+  const sr = await fetch(su.toString());
+  const sd = await sr.json();
+  if(sd.error) throw new Error('YouTube: ' + sd.error.message);
+  const items = sd.items || [];
+  if(!items.length) return [];
+
+  // チャンネルの概要欄をまとめて取得（channels.list: 1 unit）
+  const chIds = [...new Set(items.map(i => i.snippet.channelId))];
+  const descs = {};
+  for(let i = 0; i < chIds.length; i += 50){
+    const cu = new URL(`${YT}/channels`);
+    cu.searchParams.set('part','snippet');
+    cu.searchParams.set('id', chIds.slice(i, i+50).join(','));
+    cu.searchParams.set('key', ytKey);
+    const cr = await fetch(cu.toString());
+    const cd = await cr.json();
+    if(cd.error) throw new Error('YouTube: ' + cd.error.message);
+    (cd.items || []).forEach(c => {
+      descs[c.id] = (c.snippet.description || '') + ' ' + (c.snippet.title || '');
+    });
+  }
+
+  return items
+    .filter(i => isVTuber(descs[i.snippet.channelId] || ''))
+    .map(i => ({
+      id: i.id.videoId,
+      title: i.snippet.title,
+      channelId: i.snippet.channelId,
+      channelName: i.snippet.channelTitle || '',
+      org: '個人勢',
+      viewers: null,
+      src: 'youtube'
+    }));
+}
+
+function isVTuber(text){
+  return VT_WORDS.some(w => text.includes(w));
+}
+
+async function loadLives(){
+  show('s-loading');
+  try{
+    setStatus('Holodex から取得中...');
+    let list = await loadHolodex();
+
+    if(ytKey){
+      setStatus('YouTube から個人勢を検索中...');
+      try{
+        const yt = await loadYouTube();
+        const seen = new Set(list.map(v => v.id));
+        yt.forEach(v => { if(!seen.has(v.id)){ seen.add(v.id); list.push(v); } });
+      }catch(e){
+        console.warn('YouTube 取得スキップ:', e.message);
+      }
+    }
+
+    allLives = list;
+    localStorage.setItem('vz_lives', JSON.stringify({data: allLives, ts: Date.now()}));
+    showMain();
+  }catch(e){
+    setStatus('エラー: ' + e.message);
+  }
+}
+
+function refresh(){
+  localStorage.removeItem('vz_lives');
+  loadLives();
+}
+
+function updateCount(){
+  const n = pool().length;
+  const el = document.getElementById('count');
+  el.innerHTML = n > 0
+    ? `<span>${n}</span> 件の配信が対象<br><span style="color:var(--muted)">日本語ライブ ${allLives.length} 件</span>`
+    : `対象の配信が <span>0</span> 件です<br><span style="color:var(--muted)">日本語ライブ ${allLives.length} 件</span>`;
+  document.getElementById('btn-shuffle').disabled = n === 0;
+}
+
+function showMain(){
+  updateCount();
+  show('s-main');
+}
+
+function doShuffle(){
+  const p = pool();
+  if(!p.length) return;
+  const btn = document.getElementById('btn-shuffle');
+  btn.classList.add('spinning');
+  setTimeout(()=>{
+    const v = p[Math.floor(Math.random()*p.length)];
+    current = v;
+    btn.classList.remove('spinning');
+    document.getElementById('res-ch').textContent = v.channelName || '';
+    document.getElementById('res-title').textContent = v.title || '';
+    const viewers = v.viewers ? `同接 ${v.viewers.toLocaleString()}` : '';
+    document.getElementById('res-meta').textContent =
+      [v.org, viewers, v.src === 'youtube' ? 'via YouTube' : ''].filter(Boolean).join(' / ');
+    show('s-result');
+  }, 250);
+}
+
+function openVideo(){
+  if(current) window.location.href = `https://www.youtube.com/watch?v=${current.id}`;
+}
+
+window.onload = ()=>{
+  const z = localStorage.getItem('vz_zatsu');
+  if(z !== null){
+    zatsuOnly = z === '1';
+    document.getElementById('sw-zatsu').classList.toggle('on', zatsuOnly);
+  }
+  apiKey = localStorage.getItem('vz_key');
+  ytKey = localStorage.getItem('vz_ytkey');
+  if(!apiKey){
+    const ki = document.getElementById('key-input');
+    const yi = document.getElementById('yt-input');
+    if(ytKey && yi) yi.value = ytKey;
+    show('s-setup'); return;
+  }
+  const cached = getCached();
+  if(cached){ allLives = cached; showMain(); }
+  else { loadLives(); }
+};
+</script>
+</body>
+</html>
