@@ -133,7 +133,6 @@ input[type=text]::placeholder{color:var(--muted)}
     </div>
     <div class="divider"></div>
     <button class="link-btn" onclick="refresh()">↺ 配信リストを再取得</button>
-    <button class="link-btn" onclick="resetKey()">APIキーを変更</button>
   </div>
 
   <!-- RESULT -->
@@ -167,6 +166,8 @@ const VT_WORDS = [
   'ママ:','ママ：','パパ:','パパ：','ママ】','パパ】'
 ];
 
+const EMBED_HOLODEX_KEY = '2c8de1d0-a2da-446f-b991-76747d1d8cfa';
+conts EMBED_YT_KEY = 'AIzaSyC6oghS-YVcB8KhK6IqdRDb4NoIPM6aiqs';
 let apiKey = null;
 let ytKey = null;
 let allLives = [];
@@ -382,8 +383,8 @@ window.onload = ()=>{
     zatsuOnly = z === '1';
     document.getElementById('sw-zatsu').classList.toggle('on', zatsuOnly);
   }
-  apiKey = localStorage.getItem('vz_key');
-  ytKey = localStorage.getItem('vz_ytkey');
+  apiKey = EMBED_HOLODEX_KEY || localStorage.getItem('vz_key');
+  ytKey = EMBED_YT_KEY || localStorage.getItem('vz_ytkey');
   if(!apiKey){
     const ki = document.getElementById('key-input');
     const yi = document.getElementById('yt-input');
